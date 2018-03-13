@@ -5,8 +5,12 @@
 class Scheduler
 {
 public:
-	std::list<Job> jobList;
+	std::list<Job> incopmpleteJobList;
+	std::list<Job> completeJobList;
 
+	//Job currentJob;
+
+	int elapsedTick;
 
 public:
 	Scheduler();

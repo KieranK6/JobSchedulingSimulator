@@ -1,19 +1,19 @@
 #pragma once
 #include <iostream>
-#include <time.h>
 
 class Job
 {
 public:
 	std::string name;
-	float runTime, arrivalTime;
+	int runTime, arrivalTime, endTime;
 
 
 
 public:
-	Job();
+	Job(std::string name, int arrivalTime, int runTime);
 	~Job();
 
+	void jobTick();
 
 };
 

@@ -13,10 +13,12 @@ Scheduler::~Scheduler()
 
 void Scheduler::Arrive(Job job)
 {
-	jobList.push_front(job);
+	incopmpleteJobList.push_front(job);
 }
 
 void Scheduler::Tick()
 {
+	elapsedTick++;
 
+	
 }
