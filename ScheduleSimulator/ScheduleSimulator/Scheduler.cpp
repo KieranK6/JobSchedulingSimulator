@@ -4,6 +4,7 @@
 
 Scheduler::Scheduler()
 {
+	isComplete = false;
 }
 
 
@@ -13,7 +14,7 @@ Scheduler::~Scheduler()
 
 void Scheduler::Arrive(Job job)
 {
-	incopmpleteJobList.push_front(job);
+	incompleteJobList.push_front(job);
 }
 
 void Scheduler::Tick()

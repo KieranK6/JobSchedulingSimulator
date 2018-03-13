@@ -5,8 +5,10 @@
 class Scheduler
 {
 public:
-	std::list<Job> incopmpleteJobList;
+	std::list<Job> incompleteJobList;
 	std::list<Job> completeJobList;
+
+	bool isComplete;
 
 	//Job currentJob;
 

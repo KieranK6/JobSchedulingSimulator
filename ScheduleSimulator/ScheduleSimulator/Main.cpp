@@ -15,4 +15,9 @@ int main()
 	FIFO.Arrive(c);
 	FIFO.Arrive(d);
 
+	while (FIFO.isComplete != true)
+	{
+		FIFO.Tick();
+	}
+
 }

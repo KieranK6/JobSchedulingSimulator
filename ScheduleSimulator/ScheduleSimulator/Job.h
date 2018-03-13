@@ -6,6 +6,7 @@ class Job
 public:
 	std::string name;
 	int runTime, arrivalTime, endTime;
+	bool jobComplete;
 
 
 
