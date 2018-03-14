@@ -7,6 +7,10 @@ Job::Job(std::string name, int arrivalTime, int runTime) : name(name), arrivalTi
 	jobComplete = false;
 }
 
+Job::Job()
+{
+}
+
 
 Job::~Job()
 {

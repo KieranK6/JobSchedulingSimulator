@@ -12,6 +12,7 @@ public:
 
 public:
 	Job(std::string name, int arrivalTime, int runTime);
+	Job();
 	~Job();
 
 	void jobTick();
