@@ -19,6 +19,18 @@ Scheduler::Scheduler()
 
 	curTickRROne = 0;
 	curTickRRTwo = 0;
+
+	FIFOAvgTurnaround = 0;
+	SJFAvgTurnaround = 0;
+	STTCAvgTurnaround = 0;
+	RROneAvgTurnaround = 0;
+	RRTwoAvgTurnaround = 0;
+
+	FIFOAvgResponce = 0;
+	SJFAvgResponce = 0;
+	STTCAvgResponce = 0;
+	RROneAvgResponce = 0;
+	RRTwoAvgResponce = 0;
 }
 
 Scheduler::~Scheduler()
@@ -61,6 +73,10 @@ void Scheduler::Simulate()
 
 		checkComplete();
 	}
+
+
+	CalculateStats();
+	PrintStats();
 }
 
 void Scheduler::printTick()
@@ -127,10 +143,15 @@ void Scheduler::RunFIFO()
 		}
 
 		currentFIFOJob = &incompleteFIFOJobQueue.front();
+		if (currentFIFOJob->hasStarted == false)
+		{
+			currentFIFOJob->firstrunTime = elapsedTick;
+			currentFIFOJob->hasStarted = true;
+		}	
 		currentFIFOJob->jobTick();
 
 		if (currentFIFOJob->jobComplete == true)
-		{
+		{ //Check if first time being simulated, if it is store firstRunTime
 			printCompleteJob("FIFO", currentFIFOJob->name);
 
 			currentFIFOJob->endTime = elapsedTick;
@@ -163,6 +184,11 @@ void Scheduler::RunSJF()
 		}
 
 		currentSJFJob = &incompleteSJFJobQueue.front();
+		if (currentSJFJob->hasStarted == false)
+		{ //Check if first time being simulated, if it is store firstRunTime
+			currentSJFJob->firstrunTime = elapsedTick;
+			currentSJFJob->hasStarted = true;
+		}
 		currentSJFJob->jobTick();
 
 		if (currentSJFJob->jobComplete == true)
@@ -189,6 +215,11 @@ void Scheduler::RunSTTC()
 		sortSTTCQueue(&incompleteSTTCJobQueue);
 
 		currentSTTCJob = &incompleteSTTCJobQueue.front();
+		if (currentSTTCJob->hasStarted == false)
+		{ //Check if first time being simulated, if it is store firstRunTime
+			currentSTTCJob->firstrunTime = elapsedTick;
+			currentSTTCJob->hasStarted = true;
+		}
 		currentSTTCJob->jobTick();
 
 		if (currentSTTCJob->jobComplete == true)
@@ -220,6 +251,11 @@ void Scheduler::RunRROne(int sliceTime)
 	curTickRROne++;
 	
 	currentRROneJob = &incompleteRROneJobQueue.front();
+	if (currentRROneJob->hasStarted == false)
+	{ //Check if first time being simulated, if it is store firstRunTime
+		currentRROneJob->firstrunTime = elapsedTick;
+		currentRROneJob->hasStarted = true;
+	}
 	currentRROneJob->jobTick();
 
 	if (currentRROneJob->jobComplete == true)
@@ -251,6 +287,11 @@ void Scheduler::RunRRTwo(int sliceTime)
 	curTickRRTwo++;
 
 	currentRRTwoJob = &incompleteRRTwoJobQueue.front();
+	if (currentRRTwoJob->hasStarted == false)
+	{ //Check if first time being simulated, if it is store firstRunTime
+		currentRRTwoJob->firstrunTime = elapsedTick;
+		currentRRTwoJob->hasStarted = true;
+	}
 	currentRRTwoJob->jobTick();
 
 	if (currentRRTwoJob->jobComplete == true)
@@ -291,6 +332,190 @@ void Scheduler::CheckArrivals()
 		}
 	}
 }
+
+void Scheduler::CalculateStats()
+{ //Turnaround = completedTime - arrivalTime   Response = firstrun - arrival
+	// FIFO stats
+	//Average turnaround	Average Responce
+	if (!completeFIFOJobList.empty())
+	{
+		for (Job j : completeFIFOJobList)
+		{
+			std::map<std::string, int> turnaroundTimeMap;
+			std::map<std::string, int> responceTimeMap;
+
+			int turnaroundTime = CalculateTurnaround(j.arrivalTime, j.endTime);
+			int responceTime = CalculateResponce(j.arrivalTime, j.firstrunTime);
+
+			FIFOResponceTimes.push_back(responceTime);
+			FIFOTurnaroundTimes.push_back(turnaroundTime);
+
+			//turnaroundTimeMap.emplace("FIFO", turnaroundTime);
+			//responceTimeMap.emplace("FIFO", responceTime);
+
+			turnaroundTimeMap.emplace(j.name, turnaroundTime);
+			responceTimeMap.emplace(j.name, responceTime);
+			FIFOjobsTurnaround.push_back(turnaroundTimeMap);
+			FIFOjobsResponce.push_back(responceTimeMap);
+		}
+		FIFOAvgResponce = CalculateAvgTime(FIFOResponceTimes);
+		FIFOAvgTurnaround = CalculateAvgTime(FIFOTurnaroundTimes);
+	}
+	
+
+	// SJF stats
+	//Average turnaround	Average Responce
+	if (!completeSJFJobList.empty())
+	{
+		for (Job j : completeSJFJobList)
+		{
+			std::map<std::string, int> turnaroundTimeMap;
+			std::map<std::string, int> responceTimeMap;
+
+			int turnaroundTime = CalculateTurnaround(j.arrivalTime, j.endTime);
+			int responceTime = CalculateResponce(j.arrivalTime, j.firstrunTime);
+
+			SJFResponceTimes.push_back(responceTime);
+			SJFTurnaroundTimes.push_back(turnaroundTime);
+
+			//turnaroundTimeMap.emplace("SJF", turnaroundTime);
+			//responceTimeMap.emplace("SJF", responceTime);
+
+			turnAroundTimes.emplace(j.name, turnaroundTimeMap);
+			responceTimes.emplace(j.name, responceTimeMap);
+		}
+		SJFAvgResponce = CalculateAvgTime(SJFResponceTimes);
+		SJFAvgTurnaround = CalculateAvgTime(SJFTurnaroundTimes);
+	}
+
+	// STTC stats
+	//Average turnaround	Average Responce
+	if (!completeSTTCJobList.empty())
+	{
+		for (Job j : completeSTTCJobList)
+		{
+			std::map<std::string, int> turnaroundTimeMap;
+			std::map<std::string, int> responceTimeMap;
+
+			int turnaroundTime = CalculateTurnaround(j.arrivalTime, j.endTime);
+			int responceTime = CalculateResponce(j.arrivalTime, j.firstrunTime);
+
+			STTCResponceTimes.push_back(responceTime);
+			STTCTurnaroundTimes.push_back(turnaroundTime);
+
+			turnaroundTimeMap.emplace("STTC", turnaroundTime);
+			responceTimeMap.emplace("STTC", responceTime);
+
+			turnAroundTimes.emplace(j.name, turnaroundTimeMap);
+			responceTimes.emplace(j.name, responceTimeMap);
+		}
+		STTCAvgResponce = CalculateAvgTime(STTCResponceTimes);
+		STTCAvgTurnaround = CalculateAvgTime(STTCTurnaroundTimes);
+	}
+
+	// RROne stats
+	//Average turnaround	Average Responce
+	if (!completeRROneJobList.empty())
+	{
+		for (Job j : completeRROneJobList)
+		{
+			std::map<std::string, int> turnaroundTimeMap;
+			std::map<std::string, int> responceTimeMap;
+
+			int turnaroundTime = CalculateTurnaround(j.arrivalTime, j.endTime);
+			int responceTime = CalculateResponce(j.arrivalTime, j.firstrunTime);
+
+			RROneResponceTimes.push_back(responceTime);
+			RROneTurnaroundTimes.push_back(turnaroundTime);
+
+			turnaroundTimeMap.emplace("RROne", turnaroundTime);
+			responceTimeMap.emplace("RROne", responceTime);
+
+			turnAroundTimes.emplace(j.name, turnaroundTimeMap);
+			responceTimes.emplace(j.name, responceTimeMap);
+		}
+		RROneAvgResponce = CalculateAvgTime(RROneResponceTimes);
+		RROneAvgTurnaround = CalculateAvgTime(RROneTurnaroundTimes);
+	}
+
+	// RRTwo stats
+	//Average turnaround	Average Responce
+	if (!completeRRTwoJobList.empty())
+	{
+		for (Job j : completeRRTwoJobList)
+		{
+			std::map<std::string, int> turnaroundTimeMap;
+			std::map<std::string, int> responceTimeMap;
+
+			int turnaroundTime = CalculateTurnaround(j.arrivalTime, j.endTime);
+			int responceTime = CalculateResponce(j.arrivalTime, j.firstrunTime);
+
+			RRTwoResponceTimes.push_back(responceTime);
+			RRTwoTurnaroundTimes.push_back(turnaroundTime);
+
+			turnaroundTimeMap.emplace("RRTwo", turnaroundTime);
+			responceTimeMap.emplace("RRTwo", responceTime);
+
+			turnAroundTimes.emplace(j.name, turnaroundTimeMap);
+			responceTimes.emplace(j.name, responceTimeMap);
+		}
+		RRTwoAvgResponce = CalculateAvgTime(RRTwoResponceTimes);
+		RRTwoAvgTurnaround = CalculateAvgTime(RRTwoTurnaroundTimes);
+	}
+}
+
+void Scheduler::addJobsToDictionary()
+{
+
+}
+
+int Scheduler::CalculateTurnaround(int arrival, int end)
+{ //return ticks between arrival and end
+	return end - arrival;
+}
+int Scheduler::CalculateResponce(int arrival, int firstrun)
+{ //return ticks between first arrival and first simulation
+	return firstrun - arrival;
+}
+double Scheduler::CalculateAvgTime(std::vector<int> turnaroundTimes)
+{
+	double cumulativeTurnTime = 0;
+	int count = 0;
+	for (double time : turnaroundTimes)
+	{
+		cumulativeTurnTime += time;
+		count++;
+	}
+	return cumulativeTurnTime / count;
+}
+
+
+void Scheduler::PrintStats()
+{ //std::cout << "" << std::endl;
+	///PER JOB STATS
+	std::cout << std::endl;
+	std::cout << "# \tJob \tFIFO \tSJF \tSTTC \tRR1 \tRR2" << std::endl;
+	//Turnaround
+	//std::cout << "T" << "\tJobOne" << "\t10.5"  << std::endl;
+	std::cout << "\t Per Job stats not Implemented yet" << std::endl;
+	
+
+
+	///Avg Job Stats
+	std::cout << std::endl;
+	std::cout << "# \tScheduler \tAVG_Turnaround \tAVG_Responce" << std::endl;
+	
+	std::cout << "@" << "\tFIFO" << "\t\t" << FIFOAvgTurnaround << "\t\t" << FIFOAvgResponce << std::endl;
+	std::cout << "@" << "\tSJF" << "\t\t" << SJFAvgTurnaround << "\t\t" << SJFAvgResponce << std::endl;
+	std::cout << "@" << "\tSTTC" << "\t\t" << STTCAvgTurnaround << "\t\t" << STTCAvgResponce << std::endl;
+	std::cout << "@" << "\tRROne" << "\t\t" << RROneAvgTurnaround << "\t\t" << RROneAvgResponce << std::endl;
+	std::cout << "@" << "\tRRTwo" << "\t\t" << RRTwoAvgTurnaround << "\t\t" << RRTwoAvgResponce << std::endl;
+
+	std::cout << "= Aggregate stats complete" << std::endl;
+	
+
+}
+
 
 //void Scheduler::sortQueue(std::queue<Job>* sortableQueue, bool sortBy)  //Wont take passed bool, giving error C2064, workaround is two functions below
 //{

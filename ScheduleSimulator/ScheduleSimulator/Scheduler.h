@@ -4,6 +4,7 @@
 #include <queue>
 #include <iostream>
 #include <algorithm>
+#include <map>
 
 class Scheduler
 {
@@ -19,6 +20,45 @@ public:
 	std::list<Job> completeSTTCJobList;
 	std::list<Job> completeRROneJobList;
 	std::list<Job> completeRRTwoJobList;
+
+	std::vector<int> FIFOTurnaroundTimes;
+	std::vector<int> SJFTurnaroundTimes;
+	std::vector<int> STTCTurnaroundTimes;
+	std::vector<int> RROneTurnaroundTimes;
+	std::vector<int> RRTwoTurnaroundTimes;
+
+	std::vector<int> FIFOResponceTimes;
+	std::vector<int> SJFResponceTimes;
+	std::vector<int> STTCResponceTimes;
+	std::vector<int> RROneResponceTimes;
+	std::vector<int> RRTwoResponceTimes;
+
+	
+	std::map<std::string, std::map<std::string, int>> turnAroundTimes;
+	std::map<std::string, std::map<std::string, int>> responceTimes;
+
+	std::vector < std::map<std::string, int>> FIFOjobsTurnaround;
+	std::vector < std::map<std::string, int>> FIFOjobsResponce;
+	std::vector < std::map<std::string, int>> SJFjobsTurnaround;
+	std::vector < std::map<std::string, int>> SJFjobsResponce;
+	std::vector < std::map<std::string, int>> STTCjobsTurnaround;
+	std::vector < std::map<std::string, int>> STTCjobsResponce;
+	std::vector < std::map<std::string, int>> RROnejobsTurnaround;
+	std::vector < std::map<std::string, int>> RROnejobsResponce;
+	std::vector < std::map<std::string, int>> RRTwojobsTurnaround;
+	std::vector < std::map<std::string, int>> RRTwojobsResponce;
+
+	double FIFOAvgTurnaround;
+	double SJFAvgTurnaround;
+	double STTCAvgTurnaround;
+	double RROneAvgTurnaround;
+	double RRTwoAvgTurnaround;
+
+	double FIFOAvgResponce;
+	double SJFAvgResponce;
+	double STTCAvgResponce;
+	double RROneAvgResponce;
+	double RRTwoAvgResponce;
 
 	bool isComplete;
 	int elapsedTick;
@@ -61,7 +101,7 @@ public:
 
 	void CheckArrivals();
 	void Arrive(Job job);
-	void loadJobs();
+	void LoadJobs();
 	void Tick();
 	void RunFIFO();
 	void RunSJF();
@@ -69,6 +109,17 @@ public:
 	void RunRROne(int sliceTime);
 	void RunRRTwo(int sliceTime);
 	void Simulate();
+
+	void CalculateStats();
+	int CalculateTurnaround(int arrival, int end);
+	int CalculateResponce(int arrival, int firstrun);
+	double CalculateAvgTime(std::vector<int> times);
+	double CalculateAvgResponce(std::vector<int> responceTimes);
+	void PrintStats();
+
+	void addJobsToDictionary();
+
+
 	//void sort();
 
 	void printTick();

@@ -5,9 +5,10 @@ class Job
 {
 public:
 	std::string name;
-	int runTime, arrivalTime, endTime;
+	int runTime, arrivalTime, endTime, firstrunTime;
 	bool jobComplete;
 	bool hasArrived;
+	bool hasStarted;
 
 
 
@@ -16,7 +17,7 @@ public:
 	Job();
 	~Job();
 
-	bool operator == (const Job& j) const { return name == j.name && runTime == j.runTime && arrivalTime == j.arrivalTime && endTime == j.endTime && jobComplete == j.jobComplete && hasArrived == j.hasArrived; }
+	bool operator == (const Job& j) const { return name == j.name && runTime == j.runTime && arrivalTime == j.arrivalTime && endTime == j.endTime && firstrunTime == j.firstrunTime && jobComplete == j.jobComplete && hasArrived == j.hasArrived; }
 
 	void jobTick();
 

@@ -6,6 +6,7 @@ Job::Job(std::string name, int arrivalTime, int runTime) : name(name), arrivalTi
 {
 	jobComplete = false;
 	hasArrived = false;
+	hasStarted = false;
 }
 
 Job::Job()
