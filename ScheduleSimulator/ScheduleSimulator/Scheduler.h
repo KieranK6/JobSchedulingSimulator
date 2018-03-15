@@ -30,7 +30,8 @@ public:
 	bool RR1Complete;
 	bool RR2Complete;
 
-
+	//int ArrivedCount;
+	int totalJobCount;
 	
 
 	//bool SortByArrivalTime(Job i, Job j);
@@ -38,12 +39,13 @@ public:
 
 	bool sortedSJF;
 	bool sortedFIFO;
+	bool sortedSTTC;
 
 	std::list<Job> loadedJobsFromFile;
 
-	Job currentFIFOJob;
-	Job currentSJFJob;
-	Job currentSTTCJob;
+	Job* currentFIFOJob;
+	Job* currentSJFJob;
+	Job* currentSTTCJob;
 	Job currentRR1Job;
 	Job currentRR2Job;
 
@@ -53,18 +55,23 @@ public:
 	Scheduler();
 	~Scheduler();
 
+	void CheckArrivals();
 	void Arrive(Job job);
+	void loadJobs();
 	void Tick();
 	void RunFIFO();
 	void RunSJF();
+	void RunSTTC();
 	void Simulate();
 	//void sort();
 
 	void printTick();
 	void checkComplete();
+	void printCompleteJob(std::string method, std::string name);
 
-	//void sortQueue(std::queue<Job>* sortableQueue, bool sortBy);
+	//void sortQueue(std::queue<Job>* sortableQueue, bool sortBy); //Passed bool causing error C2064
 	void sortFIFOQueue(std::queue<Job>* sortableQueue);
 	void sortSJFQueue(std::queue<Job>* sortableQueue);
+	void sortSTTCQueue(std::queue<Job>* sortableQueue);
 };
 

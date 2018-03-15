@@ -5,6 +5,8 @@ Scheduler::Scheduler()
 	elapsedTick = 0;
 	isComplete = 0;
 
+	totalJobCount = 0;
+
 	running = true;
 	FIFOcomplete = false;
 	SJFcomplete = false;
@@ -20,55 +22,70 @@ Scheduler::~Scheduler()
 {
 }
 
-void Scheduler::Arrive(Job job)
-{
-	incompleteFIFOJobQueue.push(job);
-}
 
 bool SortByArrivalTime(Job i, Job j) { return i.arrivalTime < j.arrivalTime; }
 bool SortByRunTime(Job i, Job j) { return i.runTime < j.runTime; }
 
+//bool operator==(Job lhs, int rhs) { return lhs.arrivalTime == rhs; }
+
 void Scheduler::Tick()
 {
 	elapsedTick++;
-
-	
 }
 
 void Scheduler::Simulate()
 {
-	//sort
-	//sort();
+	//loadInFiles
+	//loadJobs();
+
+	totalJobCount = loadedJobsFromFile.size();
 
 	//print t FIFO SJF STTC RR1 RR2
-	std::cout << "t \t FIFO \t SJF" << std::endl;
+	std::cout << "t \tFIFO \tSJF" << std::endl;
 	//loop
 	while (running)
 	{
 		Tick(); //Time management
+		CheckArrivals(); //Add jobs to Queues
+
 		RunFIFO(); //Simulate FIFO
 		RunSJF(); //Simulate SJF
 		//STTC
-		//RR1
-		//RR2
+		//RR1(5)
+		//RR2(10)
 
-		//print tick job1 job2 job3
 		printTick();
 
-		//check if complete
 		checkComplete();
 	}
 }
 
 void Scheduler::printTick()
 {
-	std::cout << elapsedTick << "/t" << currentFIFOJob.name << "/t" << currentSJFJob.name << std::endl;
+	std::string FIFOname, SJFname;
+	if (incompleteFIFOJobQueue.empty())
+	{
+		FIFOname = "Not Available";
+	}
+	else if (!incompleteFIFOJobQueue.empty())
+	{
+		FIFOname = currentFIFOJob->name;
+	}
+	if (incompleteSJFJobQueue.empty())
+	{
+		SJFname = "Not Available";
+	}
+	else if (!incompleteSJFJobQueue.empty())
+	{
+		SJFname = currentSJFJob->name;
+	}
+		
+	std::cout << elapsedTick << ": \t" << FIFOname << "\t" << SJFname << std::endl;
 }
-
 
 void Scheduler::RunFIFO()
 {
-	if (incompleteFIFOJobQueue.empty())
+	if (incompleteFIFOJobQueue.empty() && completeFIFOJobList.size() == loadedJobsFromFile.size())
 	{
 		FIFOcomplete = true;
 		return;
@@ -82,39 +99,32 @@ void Scheduler::RunFIFO()
 			sortedFIFO = true;
 		}
 
-		currentFIFOJob = incompleteFIFOJobQueue.front();
-		currentFIFOJob.jobTick();
+		currentFIFOJob = &incompleteFIFOJobQueue.front();
+		currentFIFOJob->jobTick();
 
-		if (currentFIFOJob.jobComplete == true)
+		if (currentFIFOJob->jobComplete == true)
 		{
-			currentFIFOJob.endTime = elapsedTick;
-			completeFIFOJobList.push_front(currentFIFOJob);
-			incompleteFIFOJobQueue.pop();
+			printCompleteJob("FIFO", currentFIFOJob->name);
 
-			std::cout << "COMPLETE: " << currentFIFOJob.name << std::endl;
+			currentFIFOJob->endTime = elapsedTick;
+			completeFIFOJobList.push_front(incompleteFIFOJobQueue.front());
+			incompleteFIFOJobQueue.pop();
 		}
 	}
-
-	
-
-	//std::string curJob = incompleteFIFOJobQueue.front().name;
-	//int remainingTicks = incompleteFIFOJobQueue.front().runTime;
-	////print out values
-	//std::string output = " | Job: " + curJob + " | Ticks Remaining: ";
-	//std::cout << "Current Tick: " << elapsedTick << output << remainingTicks << std::endl;
-
-	//if (remainingTicks <= 0)
-	//	std::cout << "COMPLETE:" << curJob << std::endl;
 }
 
+void Scheduler::printCompleteJob(std::string method, std::string name)
+{
+	std::cout << method << " COMPLETE: " << name << " at tick " << elapsedTick << std::endl;
+}
 
 
 void Scheduler::RunSJF()
 {
 
-	if (incompleteFIFOJobQueue.empty())
+	if (incompleteSJFJobQueue.empty() && completeSJFJobList.size() == loadedJobsFromFile.size())
 	{
-		FIFOcomplete = true;
+		SJFcomplete = true;
 		return;
 	}
 	else
@@ -125,27 +135,91 @@ void Scheduler::RunSJF()
 			sortedSJF = true;
 		}
 
-		currentSJFJob = incompleteSJFJobQueue.front();
-		currentSJFJob.jobTick();
+		currentSJFJob = &incompleteSJFJobQueue.front();
+		currentSJFJob->jobTick();
 
-		if (currentSJFJob.jobComplete == true)
+		if (currentSJFJob->jobComplete == true)
 		{
-			currentSJFJob.endTime = elapsedTick;
-			completeSJFJobList.push_front(currentSJFJob);
-			incompleteSJFJobQueue.pop();
+			printCompleteJob("SJF", currentSJFJob->name);
 
-			std::cout << "COMPLETE: " << currentSJFJob.name << std::endl;
+			currentSJFJob->endTime = elapsedTick;
+			completeSJFJobList.push_front(incompleteSJFJobQueue.front());
+			incompleteSJFJobQueue.pop();
 		}
 	}
-	//std::string curJob = incompleteFIFOJobQueue.front().name;
-	//int remainingTicks = incompleteFIFOJobQueue.front().runTime;
-	////print out values
-	//std::string output = " | Job: " + curJob + " | Ticks Remaining: ";
-	//std::cout << "Current Tick: " << elapsedTick << output << remainingTicks << std::endl;
-
-	//if (remainingTicks <= 1)
-	//	std::cout << curJob + " Complete !!" << std::endl;
 }
+
+void Scheduler::RunSTTC()
+{
+
+	if (incompleteSTTCJobQueue.empty() && completeSTTCJobList.size() == loadedJobsFromFile.size())
+	{
+		STTCcomplete = true;
+		return;
+	}
+	else
+	{
+		sortSTTCQueue(&incompleteSTTCJobQueue);
+
+		currentSTTCJob = &incompleteSTTCJobQueue.front();
+		currentSTTCJob->jobTick();
+
+		if (currentSTTCJob->jobComplete == true)
+		{
+			printCompleteJob("STTC", currentSTTCJob->name);
+
+			currentSTTCJob->endTime = elapsedTick;
+			completeSTTCJobList.push_front(incompleteSTTCJobQueue.front());
+			incompleteSTTCJobQueue.pop();
+		}
+	}
+}
+
+void Scheduler::Arrive(Job j)
+{
+	incompleteFIFOJobQueue.push(j);
+	incompleteSJFJobQueue.push(j);
+}
+void Scheduler::CheckArrivals()
+{
+	//check if loaded list is not empty
+	if (!loadedJobsFromFile.empty())
+	{
+		for (Job j : loadedJobsFromFile)
+		{
+			if ((j.arrivalTime == elapsedTick) && j.hasArrived == false)
+			{ //if job arrives at current tick remove from loaded list and add to each Queue
+				incompleteFIFOJobQueue.push(j);
+				incompleteSJFJobQueue.push(j);
+				//incompleteSTTCJobQueue.push(j);
+				//incompleteRR1JobQueue.push(loadedJobsFromFile[i]);
+				//incompleteRR2JobQueue.push(loadedJobsFromFile[i]);
+
+				std::cout << "* ARRIVED: " << j.name << std::endl;
+				j.hasArrived = true;
+				loadedJobsFromFile.remove(j);
+				//loadedJobsFromFile.resize(loadedJobsFromFile.size()-1);
+			}
+		}
+	}
+}
+
+//void Scheduler::sortQueue(std::queue<Job>* sortableQueue, bool sortBy)  //Wont take passed bool, giving error C2064, workaround is two functions below
+//{
+//	std::vector<Job> tempSortVector;
+//	while (!sortableQueue->empty())
+//	{
+//		tempSortVector.push_back(sortableQueue->front());
+//		sortableQueue->pop();
+//	}
+//
+//	std::sort(tempSortVector.begin(), tempSortVector.end(), sortBy);
+//
+//	for (Job j : tempSortVector)
+//	{
+//		sortableQueue->push(j);
+//	}
+//}
 
 void Scheduler::sortFIFOQueue(std::queue<Job>* sortableQueue)
 {
@@ -184,7 +258,11 @@ void Scheduler::sortSJFQueue(std::queue<Job>* sortableQueue)
 void Scheduler::checkComplete()
 { //if ((FIFOcomplete == true) && (SJFcomplete == true) && (STTCcomplete == true) && (RR1Complete == true) && (RR2Complete == true))
 	if ((FIFOcomplete == true) && (SJFcomplete == true))
+	{
 		running = false;
+		std::cout << "= SIMULATION COMPLETE" << std::endl;
+	}
+		
 	else
 		return;
 }

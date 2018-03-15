@@ -5,6 +5,7 @@
 Job::Job(std::string name, int arrivalTime, int runTime) : name(name), arrivalTime(arrivalTime), runTime(runTime)
 {
 	jobComplete = false;
+	hasArrived = false;
 }
 
 Job::Job()
