@@ -50,8 +50,6 @@ void Scheduler::Tick()
 
 void Scheduler::Simulate()
 {
-	//loadInFiles
-	//loadJobs();
 
 	totalJobCount = loadedJobsFromFile.size();
 
@@ -66,8 +64,8 @@ void Scheduler::Simulate()
 		RunFIFO(); //Simulate FIFO
 		RunSJF(); //Simulate SJF
 		RunSTTC();//STTC
-		RunRROne(5);//RR1(5)
-		RunRRTwo(10);//RR2(10)
+		RunRROne(3);//RR1(3)
+		RunRRTwo(5);//RR2(5)
 
 		printTick();
 
@@ -77,6 +75,19 @@ void Scheduler::Simulate()
 
 	CalculateStats();
 	PrintStats();
+}
+
+void Scheduler::LoadJobs(std::string filename)
+{
+	std::ifstream infile(filename);
+	std::string jobName;
+	int arrivalTime, durationTime;
+
+	while (infile >> jobName >> arrivalTime >> durationTime)
+	{
+		Job j = Job(jobName, arrivalTime, durationTime);
+		loadedJobsFromFile.push_back(j);
+	}
 }
 
 void Scheduler::printTick()

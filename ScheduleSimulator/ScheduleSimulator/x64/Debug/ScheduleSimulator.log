@@ -1,3 +1,5 @@
 ﻿  Scheduler.cpp
-e:\college\operatingsystems\ca1\schedulesimulator\schedulesimulator\scheduler.cpp(56): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-  ScheduleSimulator.vcxproj -> E:\College\OperatingSystems\CA1\ScheduleSimulator\x64\Debug\ScheduleSimulator.exe
+c:\users\d00168624\desktop\repo\schedulesimulator\schedulesimulator\scheduler.cpp(54): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+  Main.cpp
+  Generating Code...
+  ScheduleSimulator.vcxproj -> C:\Users\D00168624\Desktop\Repo\ScheduleSimulator\x64\Debug\ScheduleSimulator.exe

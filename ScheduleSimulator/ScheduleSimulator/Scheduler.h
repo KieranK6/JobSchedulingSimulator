@@ -5,6 +5,7 @@
 #include <iostream>
 #include <algorithm>
 #include <map>
+#include <fstream>
 
 class Scheduler
 {
@@ -101,7 +102,7 @@ public:
 
 	void CheckArrivals();
 	void Arrive(Job job);
-	void LoadJobs();
+	void LoadJobs(std::string path);
 	void Tick();
 	void RunFIFO();
 	void RunSJF();
