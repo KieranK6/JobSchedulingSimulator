@@ -50,7 +50,7 @@ void Scheduler::Simulate()
 
 		RunFIFO(); //Simulate FIFO
 		RunSJF(); //Simulate SJF
-		//STTC
+		RunSTTC();//STTC
 		//RR1(5)
 		//RR2(10)
 
@@ -62,25 +62,49 @@ void Scheduler::Simulate()
 
 void Scheduler::printTick()
 {
-	std::string FIFOname, SJFname;
-	if (incompleteFIFOJobQueue.empty())
+	std::string FIFOname, SJFname, STTCname, RROneName, RRTwoName;
+	if (incompleteFIFOJobQueue.empty()) //First in First out N/A
 	{
-		FIFOname = "Not Available";
+		FIFOname = "N/A";
 	}
-	else if (!incompleteFIFOJobQueue.empty())
+	else if (!incompleteFIFOJobQueue.empty()) //First in First out Name
 	{
 		FIFOname = currentFIFOJob->name;
 	}
-	if (incompleteSJFJobQueue.empty())
+	if (incompleteSJFJobQueue.empty()) //Shortest Job First N/A
 	{
-		SJFname = "Not Available";
+		SJFname = "N/A";
 	}
-	else if (!incompleteSJFJobQueue.empty())
+	else if (!incompleteSJFJobQueue.empty()) //Shortest Job First name
 	{
 		SJFname = currentSJFJob->name;
 	}
+	if (incompleteSTTCJobQueue.empty()) //Shortest Time to Completion N/A
+	{
+		STTCname = "N/A";
+	}
+	else if (!incompleteSTTCJobQueue.empty()) //Shortest Time to Completion name
+	{
+		STTCname = currentSTTCJob->name;
+	}
+	if (incompleteRROneJobQueue.empty()) //Round Robin one N/A
+	{
+		RROneName = "N/A";
+	}
+	else if (!incompleteRROneJobQueue.empty()) //Round Robin one Name
+	{
+		RROneName = currentSTTCJob->name;
+	}
+	if (incompleteSTTCJobQueue.empty()) //Round Robin two N/A
+	{
+		STTCname = "N/A";
+	}
+	else if (!incompleteSTTCJobQueue.empty()) //Round Robin two name
+	{
+		STTCname = currentSTTCJob->name;
+	}
 		
-	std::cout << elapsedTick << ": \t" << FIFOname << "\t" << SJFname << std::endl;
+	std::cout << elapsedTick << ": \t" << FIFOname << "\t" << SJFname << "\t" << STTCname << std::endl;
 }
 
 void Scheduler::RunFIFO()
@@ -191,7 +215,7 @@ void Scheduler::CheckArrivals()
 			{ //if job arrives at current tick remove from loaded list and add to each Queue
 				incompleteFIFOJobQueue.push(j);
 				incompleteSJFJobQueue.push(j);
-				//incompleteSTTCJobQueue.push(j);
+				incompleteSTTCJobQueue.push(j);
 				//incompleteRR1JobQueue.push(loadedJobsFromFile[i]);
 				//incompleteRR2JobQueue.push(loadedJobsFromFile[i]);
 
@@ -219,7 +243,24 @@ void Scheduler::CheckArrivals()
 //	{
 //		sortableQueue->push(j);
 //	}
-//}
+//} 
+
+void Scheduler::sortSTTCQueue(std::queue<Job>* sortableQueue)
+{
+	std::vector<Job> tempSortVector;
+	while (!sortableQueue->empty())
+	{
+		tempSortVector.push_back(sortableQueue->front());
+		sortableQueue->pop();
+	}
+
+	std::sort(tempSortVector.begin(), tempSortVector.end(), SortByRunTime);
+
+	for (Job j : tempSortVector)
+	{
+		sortableQueue->push(j);
+	}
+}
 
 void Scheduler::sortFIFOQueue(std::queue<Job>* sortableQueue)
 {

@@ -12,6 +12,7 @@ int main()
 	
 	//FIFO	c, d, b, a
 	//SJF	d, c, b, a
+	//STTC  
 
 	Scheduler scheduler = Scheduler();
 

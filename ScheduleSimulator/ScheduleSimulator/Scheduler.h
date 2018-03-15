@@ -11,14 +11,14 @@ public:
 	std::queue<Job> incompleteFIFOJobQueue;
 	std::queue<Job> incompleteSJFJobQueue;
 	std::queue<Job> incompleteSTTCJobQueue;
-	std::queue<Job> incompleteRR1JobQueue;
-	std::queue<Job> incompleteRR2JobQueue;
+	std::queue<Job> incompleteRROneJobQueue;
+	std::queue<Job> incompleteRRTwoJobQueue;
 
 	std::list<Job> completeFIFOJobList;
 	std::list<Job> completeSJFJobList;
 	std::list<Job> completeSTTCJobList;
-	std::list<Job> completeRR1JobList;
-	std::list<Job> completeRR2JobList;
+	std::list<Job> completeRROneJobList;
+	std::list<Job> completeRRTwoJobList;
 
 	bool isComplete;
 	int elapsedTick;
@@ -27,8 +27,8 @@ public:
 	bool FIFOcomplete;
 	bool SJFcomplete;
 	bool STTCcomplete;
-	bool RR1Complete;
-	bool RR2Complete;
+	bool RROneComplete;
+	bool RRTwoComplete;
 
 	//int ArrivedCount;
 	int totalJobCount;
@@ -40,6 +40,8 @@ public:
 	bool sortedSJF;
 	bool sortedFIFO;
 	bool sortedSTTC;
+	bool sortedRROne;
+	bool sortedRRTwo;
 
 	std::list<Job> loadedJobsFromFile;
 
