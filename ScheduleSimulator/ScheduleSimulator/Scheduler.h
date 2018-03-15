@@ -22,6 +22,8 @@ public:
 
 	bool isComplete;
 	int elapsedTick;
+	int curTickRROne;
+	int curTickRRTwo;
 
 	bool running;
 	bool FIFOcomplete;
@@ -48,8 +50,8 @@ public:
 	Job* currentFIFOJob;
 	Job* currentSJFJob;
 	Job* currentSTTCJob;
-	Job currentRR1Job;
-	Job currentRR2Job;
+	Job* currentRROneJob;
+	Job* currentRRTwoJob;
 
 	
 
@@ -64,6 +66,8 @@ public:
 	void RunFIFO();
 	void RunSJF();
 	void RunSTTC();
+	void RunRROne(int sliceTime);
+	void RunRRTwo(int sliceTime);
 	void Simulate();
 	//void sort();
 
@@ -75,5 +79,7 @@ public:
 	void sortFIFOQueue(std::queue<Job>* sortableQueue);
 	void sortSJFQueue(std::queue<Job>* sortableQueue);
 	void sortSTTCQueue(std::queue<Job>* sortableQueue);
+
+	void moveFirsttoBack(std::queue<Job>* sortableQueue);
 };
 

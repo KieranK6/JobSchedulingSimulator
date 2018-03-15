@@ -11,11 +11,14 @@ Scheduler::Scheduler()
 	FIFOcomplete = false;
 	SJFcomplete = false;
 	STTCcomplete = false;
-	RR1Complete = false;
-	RR2Complete = false;
+	RROneComplete = false;
+	RRTwoComplete = false;
 
 	sortedSJF = false;
 	sortedFIFO = false;
+
+	curTickRROne = 0;
+	curTickRRTwo = 0;
 }
 
 Scheduler::~Scheduler()
@@ -41,7 +44,7 @@ void Scheduler::Simulate()
 	totalJobCount = loadedJobsFromFile.size();
 
 	//print t FIFO SJF STTC RR1 RR2
-	std::cout << "t \tFIFO \tSJF" << std::endl;
+	std::cout << "t \tFIFO \tSJF \tSTTC \tRR1 \tRR2" << std::endl;
 	//loop
 	while (running)
 	{
@@ -51,8 +54,8 @@ void Scheduler::Simulate()
 		RunFIFO(); //Simulate FIFO
 		RunSJF(); //Simulate SJF
 		RunSTTC();//STTC
-		//RR1(5)
-		//RR2(10)
+		RunRROne(5);//RR1(5)
+		RunRRTwo(10);//RR2(10)
 
 		printTick();
 
@@ -93,18 +96,18 @@ void Scheduler::printTick()
 	}
 	else if (!incompleteRROneJobQueue.empty()) //Round Robin one Name
 	{
-		RROneName = currentSTTCJob->name;
+		RROneName = currentRROneJob->name;
 	}
-	if (incompleteSTTCJobQueue.empty()) //Round Robin two N/A
+	if (incompleteRRTwoJobQueue.empty()) //Round Robin two N/A
 	{
-		STTCname = "N/A";
+		RRTwoName = "N/A";
 	}
 	else if (!incompleteSTTCJobQueue.empty()) //Round Robin two name
 	{
-		STTCname = currentSTTCJob->name;
+		RRTwoName = currentRRTwoJob->name;
 	}
 		
-	std::cout << elapsedTick << ": \t" << FIFOname << "\t" << SJFname << "\t" << STTCname << std::endl;
+	std::cout << elapsedTick << ": \t" << FIFOname << "\t" << SJFname << "\t" << STTCname << "\t" << RROneName << "\t" << RRTwoName << std::endl;
 }
 
 void Scheduler::RunFIFO()
@@ -139,7 +142,7 @@ void Scheduler::RunFIFO()
 
 void Scheduler::printCompleteJob(std::string method, std::string name)
 {
-	std::cout << method << " COMPLETE: " << name << " at tick " << elapsedTick << std::endl;
+	std::cout << "* " << method << " COMPLETE: " << name << " at tick " << elapsedTick << std::endl;
 }
 
 
@@ -199,6 +202,68 @@ void Scheduler::RunSTTC()
 	}
 }
 
+void Scheduler::RunRROne(int sliceTime)
+{
+	if (incompleteRROneJobQueue.empty() && completeRROneJobList.size() == loadedJobsFromFile.size())
+	{
+		RROneComplete = true;
+		return;
+	}
+
+	//x ticks
+	if (curTickRROne == sliceTime)
+	{
+		moveFirsttoBack(&incompleteRROneJobQueue); //Swap
+		curTickRROne = 0;
+	}
+
+	curTickRROne++;
+	
+	currentRROneJob = &incompleteRROneJobQueue.front();
+	currentRROneJob->jobTick();
+
+	if (currentRROneJob->jobComplete == true)
+	{
+		printCompleteJob("RROne", currentRROneJob->name);
+
+		currentRROneJob->endTime = elapsedTick;
+		completeRROneJobList.push_front(incompleteRROneJobQueue.front());
+		incompleteRROneJobQueue.pop();
+		curTickRROne = 0;
+	}
+}
+
+void Scheduler::RunRRTwo(int sliceTime)
+{
+	if (incompleteRRTwoJobQueue.empty() && completeRRTwoJobList.size() == loadedJobsFromFile.size())
+	{
+		RRTwoComplete = true;
+		return;
+	}
+
+	//x ticks
+	if (curTickRRTwo == sliceTime)
+	{
+		moveFirsttoBack(&incompleteRRTwoJobQueue); //Swap
+		curTickRRTwo = 0;
+	}
+
+	curTickRRTwo++;
+
+	currentRRTwoJob = &incompleteRRTwoJobQueue.front();
+	currentRRTwoJob->jobTick();
+
+	if (currentRRTwoJob->jobComplete == true)
+	{
+		printCompleteJob("RRTwo", currentRRTwoJob->name);
+
+		currentRRTwoJob->endTime = elapsedTick;
+		completeRRTwoJobList.push_front(incompleteRRTwoJobQueue.front());
+		incompleteRRTwoJobQueue.pop();
+		curTickRRTwo = 0;
+	}
+}
+
 void Scheduler::Arrive(Job j)
 {
 	incompleteFIFOJobQueue.push(j);
@@ -216,13 +281,12 @@ void Scheduler::CheckArrivals()
 				incompleteFIFOJobQueue.push(j);
 				incompleteSJFJobQueue.push(j);
 				incompleteSTTCJobQueue.push(j);
-				//incompleteRR1JobQueue.push(loadedJobsFromFile[i]);
-				//incompleteRR2JobQueue.push(loadedJobsFromFile[i]);
+				incompleteRROneJobQueue.push(j);
+				incompleteRRTwoJobQueue.push(j);
 
 				std::cout << "* ARRIVED: " << j.name << std::endl;
 				j.hasArrived = true;
 				loadedJobsFromFile.remove(j);
-				//loadedJobsFromFile.resize(loadedJobsFromFile.size()-1);
 			}
 		}
 	}
@@ -244,6 +308,12 @@ void Scheduler::CheckArrivals()
 //		sortableQueue->push(j);
 //	}
 //} 
+
+void Scheduler::moveFirsttoBack(std::queue<Job>* sortableQueue)
+{
+	sortableQueue->push(sortableQueue->front());
+	sortableQueue->pop();
+}
 
 void Scheduler::sortSTTCQueue(std::queue<Job>* sortableQueue)
 {
@@ -297,8 +367,8 @@ void Scheduler::sortSJFQueue(std::queue<Job>* sortableQueue)
 }
 
 void Scheduler::checkComplete()
-{ //if ((FIFOcomplete == true) && (SJFcomplete == true) && (STTCcomplete == true) && (RR1Complete == true) && (RR2Complete == true))
-	if ((FIFOcomplete == true) && (SJFcomplete == true))
+{
+	if ((FIFOcomplete == true) && (SJFcomplete == true) && (STTCcomplete == true) && (RROneComplete == true) && (RRTwoComplete == true))
 	{
 		running = false;
 		std::cout << "= SIMULATION COMPLETE" << std::endl;
